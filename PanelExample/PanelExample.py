@@ -9,7 +9,7 @@ import logging
 from nion.swift import Panel
 from nion.swift import Workspace
 from nion.swift.model import DataItem
-from nion.ui import UserInterfaceUtility
+from nion.ui import Binding
 
 _ = gettext.gettext
 

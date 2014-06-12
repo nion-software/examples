@@ -21,7 +21,7 @@ def document_controller_command(document_controller):
 
 
 def pane_command(document_controller):
-    data_item = document_controller.selected_data_item
+    data_item = document_controller.selected_display.data_item
     logging.info("pane_command has been called.")
     if data_item is not None:
         logging.info("selected data item shape is %s", data_item.spatial_shape)

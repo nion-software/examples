@@ -9,8 +9,8 @@ import logging
 from nion.swift import Panel
 from nion.swift import Workspace
 from nion.swift.model import DataItem
+from nion.ui import Binding
 from nion.ui import CanvasItem
-from nion.ui import UserInterfaceUtility
 
 _ = gettext.gettext
 
@@ -64,7 +64,7 @@ class CanvasPanelExample(Panel.Panel):
         self.root_canvas_item.add_canvas_item(ExampleCanvasItem())
 
         column = self.ui.create_column_widget()
-        column.add(self.root_canvas_item.canvas)
+        column.add(self.root_canvas_item.canvas_widget)
 
         self.widget = column
 
