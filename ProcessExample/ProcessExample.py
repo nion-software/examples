@@ -8,8 +8,8 @@ Author: Michael Sarahan, Nion, March 2014
 import gettext
 
 # Nion imports
-from nion.imaging import Operation
 from nion.swift import Application
+from nion.swift.model import Operation
 
 # Imports from any modules you make
 
