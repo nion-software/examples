@@ -29,7 +29,7 @@ process_prefix = _("Your process done to ")
 # By defining them here, you can debug them more easily by directly importing them into your testing environment.
 def your_processing_function(data, point_parameter=None, scalar_parameter=0.3, integer_parameter=1):
     # return a copy of the data
-    return data[:]
+    return data.copy()
 
 # From here down, we're using a standard layout so that Swift knows how to execute your process.
 # the most important part is the process method, which is where you'll need to add calls to your processing function(s).
@@ -50,7 +50,7 @@ class ProcessOperation(Operation.Operation):
         super(ProcessOperation, self).__init__(process_name, script_id, description)
         # if you have no parameters, just use this instead:
         #super(ProcessOperation, self).__init__(process_name, script_id)
-        
+
         # we also have to define data members corresponding to the descriptions above:
         self.point_example = (0.25, 0.25)
         self.scalar_example = 0.3
@@ -69,7 +69,7 @@ class ProcessOperation(Operation.Operation):
         # a floating point scalar
         scalar_example = self.get_property("scalar_example")
         # an integer
-        integer_example = self.get_property("integer_example")        
+        integer_example = self.get_property("integer_example")
         return your_processing_function(data, point_example, scalar_example, integer_example)
 
     def get_processed_data_shape_and_dtype(self, data_shape, data_dtype):
