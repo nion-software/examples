@@ -32,7 +32,7 @@ class ExampleCanvasItem(CanvasItem.AbstractCanvasItem):
         drawing_context.line_to(canvas_width, canvas_height)
         drawing_context.line_to(canvas_width, 0)
         drawing_context.close_path()
-        gradient = drawing_context.create_linear_gradient(0, 0, 0, canvas_height)
+        gradient = drawing_context.create_linear_gradient(canvas_width, canvas_height, 0, 0, 0, canvas_height)
         gradient.add_color_stop(0, '#FF8')
         gradient.add_color_stop(1, '#8F8')
         drawing_context.fill_style = gradient
@@ -70,6 +70,7 @@ class CanvasPanelExample(Panel.Panel):
 
     def close(self):
         self.root_canvas_item.close()
+        self.root_canvas_item = None
 
 
 workspace_manager = Workspace.WorkspaceManager()
