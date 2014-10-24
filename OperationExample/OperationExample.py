@@ -45,8 +45,8 @@ class Stamp2dOperation(Operation.Operation):
             "destination": [Operation.RegionBinding("position", "position")]
         }
 
-    def get_processed_spatial_calibrations(self, data_shape, data_dtype, spatial_calibrations):
-        return spatial_calibrations  # unmodified
+    def get_processed_dimensional_calibrations(self, data_shape, data_dtype, dimensional_calibrations):
+        return dimensional_calibrations  # unmodified
 
     def get_processed_data_shape_and_dtype(self, data_shape, data_dtype):
         return data_shape, data_dtype  # unmodified

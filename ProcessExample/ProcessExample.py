@@ -82,7 +82,7 @@ class ProcessOperation(Operation.Operation):
         """
         return data_shape, data_dtype
 
-    def get_processed_spatial_calibrations(self, data_shape, data_dtype, spatial_calibrations):
+    def get_processed_dimensional_calibrations(self, data_shape, data_dtype, dimensional_calibrations):
         """
         Swift needs to know how your process changes the data type and shape, if it changes these.
         If you don't change calibrations (no new axes, no removed axes), you can just delete this method.
@@ -90,7 +90,7 @@ class ProcessOperation(Operation.Operation):
         The input parameters are the original input data shape, type, and list of calibrations
         The return parameters should be the list of calibrations for the processed data.
         """
-        return spatial_calibrations
+        return dimensional_calibrations
 
 
 # The following is code for making this into a menu entry on the processing menu.  You shouldn't need to change it.
