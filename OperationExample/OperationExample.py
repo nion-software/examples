@@ -74,8 +74,8 @@ def processing_stamp(document_controller, select=True):
     data_item = document_controller.selected_data_item
     if data_item and len(data_item.spatial_shape) == 2:
         operation = Operation.OperationItem("stamp-example-operation")
-        operation.establish_associated_region("source-region", data_item, Region.RectRegion())
-        operation.establish_associated_region("destination", data_item, Region.PointRegion())
+        operation.establish_associated_region("source-region", data_item)
+        operation.establish_associated_region("destination", data_item)
         return document_controller.add_processing_operation(operation, prefix=_("Stamped "), select=select)
 
 def build_menus(document_controller):
