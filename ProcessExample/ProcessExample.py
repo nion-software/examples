@@ -51,12 +51,7 @@ class ProcessOperation(Operation.Operation):
         # if you have no parameters, just use this instead:
         #super(ProcessOperation, self).__init__(process_name, script_id)
 
-        # we also have to define data members corresponding to the descriptions above:
-        self.point_example = (0.25, 0.25)
-        self.scalar_example = 0.3
-        self.integer_example = 1
-
-    def process(self, data):
+    def get_processed_data(self, data_sources, values):
         """
         Swift calls this method when you click on the menu entry for this process,
         and also whenever the parameters for this process or the underlying data change.
@@ -65,32 +60,15 @@ class ProcessOperation(Operation.Operation):
         This method should always return a new copy of data
         """
         # a tuple
-        point_example = self.get_property("point_example")
+        point_example = values.get("point_example")
         # a floating point scalar
-        scalar_example = self.get_property("scalar_example")
+        scalar_example = values.get("scalar_example")
         # an integer
-        integer_example = self.get_property("integer_example")
+        integer_example = values.get("integer_example")
+        data = data_sources[0].data
+        if data is None:
+            return None
         return your_processing_function(data, point_example, scalar_example, integer_example)
-
-    def get_processed_data_shape_and_dtype(self, data_shape, data_dtype):
-        """
-        Swift needs to know how your process changes the data type and shape, if it changes these.
-        If you don't change the data type nor shape, you can delete this method.
-
-        The input parameters are the original input data shape and type.
-        The return parameters should be the processed data shape and dtype (in that order!)
-        """
-        return data_shape, data_dtype
-
-    def get_processed_dimensional_calibrations(self, data_shape, data_dtype, dimensional_calibrations):
-        """
-        Swift needs to know how your process changes the data type and shape, if it changes these.
-        If you don't change calibrations (no new axes, no removed axes), you can just delete this method.
-
-        The input parameters are the original input data shape, type, and list of calibrations
-        The return parameters should be the list of calibrations for the processed data.
-        """
-        return dimensional_calibrations
 
 
 # The following is code for making this into a menu entry on the processing menu.  You shouldn't need to change it.
@@ -99,8 +77,10 @@ def build_menus(document_controller):
     """
     makes the menu entry for this plugin
     """
-    operation_callback = lambda: document_controller.add_processing_operation_by_id(script_id, prefix=process_prefix)
-    document_controller.processing_menu.add_menu_item(process_name, operation_callback)
+    def add_processing():
+        display_specifier = document_controller.selected_display_specifier
+        return document_controller.add_processing_operation_by_id(display_specifier.buffered_data_source_specifier, script_id, prefix=process_prefix)
+    document_controller.processing_menu.add_menu_item(process_name, add_processing)
 
 Application.app.register_menu_handler(build_menus) # called on import to make the menu entry for this plugin
 Operation.OperationManager().register_operation(script_id, lambda: ProcessOperation())

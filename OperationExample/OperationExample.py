@@ -17,7 +17,7 @@ import logging
 # local imports
 from nion.swift import Application
 from nion.swift.model import Operation
-from nion.swift.model import Region
+from nion.swift.model import DataItem
 from nion.ui import Geometry
 
 
@@ -37,26 +37,21 @@ class Stamp2dOperation(Operation.Operation):
             { "name": _("Destination"), "property": "position", "type": "point", "default": (0.5, 0.5)}
         ]
         super(Stamp2dOperation, self).__init__(_("Stamp"), "stamp-example-operation", description)
-        self.bounds = (0.1, 0.1), (0.2, 0.2)
-        self.position = (0.5, 0.5)
         self.region_types = { "source-region": "rectangle-region", "destination": "point-region" }
         self.region_bindings = {
             "source-region": [Operation.RegionBinding("bounds", "bounds")],
             "destination": [Operation.RegionBinding("position", "position")]
         }
 
-    def get_processed_dimensional_calibrations(self, data_shape, data_dtype, dimensional_calibrations):
-        return dimensional_calibrations  # unmodified
-
-    def get_processed_data_shape_and_dtype(self, data_shape, data_dtype):
-        return data_shape, data_dtype  # unmodified
-
-    def process(self, data):
+    def get_processed_data(self, data_sources, values):
         # doesn't do any bounds checking
+        data = data_sources[0].data
+        shape = data_sources[0].data_shape
+        if data is None or shape is None:
+            return None
         data_copy = data.copy()
-        shape = data.shape
-        bounds = Geometry.FloatRect.make(self.get_property("bounds"))  # get bounds tuple and convert to FloatRect
-        position = Geometry.FloatPoint.make(self.get_property("position"))  # get position tuple and convert to FloatPoint
+        bounds = Geometry.FloatRect.make(values.get("bounds"))  # get bounds tuple and convert to FloatRect
+        position = Geometry.FloatPoint.make(values.get("position"))  # get position tuple and convert to FloatPoint
         source_origin = Geometry.IntPoint(y=bounds.top * shape[0], x=bounds.left * shape[1])  # convert to IntPoint
         source_size = Geometry.IntSize(height=bounds.height * shape[0], width=bounds.width * shape[1])  # convert to IntSize
         source_bounds = Geometry.IntRect(source_origin, source_size)
@@ -70,13 +65,15 @@ class Stamp2dOperation(Operation.Operation):
 
 Operation.OperationManager().register_operation("stamp-example-operation", lambda: Stamp2dOperation())
 
-def processing_stamp(document_controller, select=True):
-    data_item = document_controller.selected_data_item
-    if data_item and len(data_item.spatial_shape) == 2:
+def processing_stamp(document_controller):
+    display_specifier = document_controller.selected_display_specifier
+    buffered_data_source = display_specifier.buffered_data_source if display_specifier else None
+    if buffered_data_source and len(buffered_data_source.dimensional_shape) == 2:
         operation = Operation.OperationItem("stamp-example-operation")
-        operation.establish_associated_region("source-region", data_item)
-        operation.establish_associated_region("destination", data_item)
-        return document_controller.add_processing_operation(operation, prefix=_("Stamped "), select=select)
+        operation.establish_associated_region("source-region", buffered_data_source)
+        operation.establish_associated_region("destination", buffered_data_source)
+        return document_controller.add_processing_operation(display_specifier.buffered_data_source_specifier, operation, prefix=_("Stamped "))
+    return DataItem.DisplaySpecifier()
 
 def build_menus(document_controller):
     """ Make menu item for this operation. """

@@ -21,10 +21,10 @@ def document_controller_command(document_controller):
 
 
 def pane_command(document_controller):
-    data_item = document_controller.selected_display.data_item
+    buffered_data_source = document_controller.selected_display_specifier.buffered_data_source
     logging.info("pane_command has been called.")
-    if data_item is not None:
-        logging.info("selected data item shape is %s", data_item.spatial_shape)
+    if buffered_data_source is not None:
+        logging.info("selected data item shape is %s", buffered_data_source.dimensional_shape)
     else:
         logging.info("no data item is selected")
 

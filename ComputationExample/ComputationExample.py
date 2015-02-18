@@ -17,7 +17,7 @@ import numpy
 from nion.swift import Application
 
 
-def data_item_computation_min_max_position(data_item):
+def computation_min_max_position(buffered_data_source):
     """
         Functions of the form data_item_computation_xyz will be found.
         These functions should return a dictionary of property / value
@@ -25,9 +25,9 @@ def data_item_computation_min_max_position(data_item):
     """
 
     # check to make sure our data is 1-d and scalar.
-    if data_item.is_data_1d and data_item.is_data_scalar_type:
+    if buffered_data_source.is_data_1d and buffered_data_source.is_data_scalar_type:
         # grab the numpy array from the data item
-        data = data_item.data
+        data = buffered_data_source.data
 
         # calculate min/max positions
         pos_min = numpy.argmin(data)
@@ -40,4 +40,4 @@ def data_item_computation_min_max_position(data_item):
     return None
 
 
-Application.app.register_data_item_computation(data_item_computation_min_max_position)
+Application.app.register_computation(computation_min_max_position)
