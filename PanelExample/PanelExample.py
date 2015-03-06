@@ -6,23 +6,20 @@ import logging
 # None
 
 # local libraries
-from nion.swift import Panel
-from nion.swift import Workspace
-from nion.swift.model import DataItem
-from nion.ui import Binding
+# None
 
 _ = gettext.gettext
 
 
-class PanelExample(Panel.Panel):
+class PanelExampleDelegate(object):
 
-    def __init__(self, document_controller, panel_id, properties):
-        super(PanelExample, self).__init__(document_controller, panel_id, "Example")
+    def __init__(self):
+        self.panel_id = "example-panel"
+        self.panel_name = _("Example")
+        self.panel_positions = ["left", "right"]
+        self.panel_position = "right"
 
-        ui = document_controller.ui
-
-        # user interface
-
+    def create_panel_widget(self, ui, document_controller):
         column = ui.create_column_widget()
 
         edit_row = ui.create_row_widget()
@@ -50,8 +47,22 @@ class PanelExample(Panel.Panel):
         column.add_spacing(8)
         column.add_stretch()
 
-        self.widget = column
+        return column
 
 
-workspace_manager = Workspace.WorkspaceManager()
-workspace_manager.register_panel(PanelExample, "example-panel", _("Example"), ["left", "right"], "right" )
+class PanelExampleExtension(object):
+
+    # required for Swift to recognize this as an extension class.
+    extension_id = "nion.swift.examples.panel_example"
+
+    def __init__(self, api_broker):
+        # grab the api object.
+        api = api_broker.get_api(version="1", ui_version="1")
+        # be sure to keep a reference or it will be closed immediately.
+        self.__panel_ref = api.create_panel(PanelExampleDelegate())
+
+    def close(self):
+        # close will be called when the extension is unloaded. in turn, close any references so they get closed. this
+        # is not strictly necessary since the references will be deleted naturally when this object is deleted.
+        self.__panel_ref.close()
+        self.__panel_ref = None

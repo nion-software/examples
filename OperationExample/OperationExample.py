@@ -14,69 +14,88 @@ import logging
 # library imports
 # None
 
-# local imports
-from nion.swift import Application
-from nion.swift.model import Operation
-from nion.swift.model import DataItem
-from nion.ui import Geometry
+# local libraries
+# None
 
 
 # for translation
 _ = gettext.gettext
 
 
-class Stamp2dOperation(Operation.Operation):
+class Stamp2dOperationDelegate(object):
 
-    """
-        Provide a source rectangle and a destination location, copy the source data to the area centered at destination.
-    """
-
-    def __init__(self):
-        description = [
-            { "name": _("Source"), "property": "bounds", "type": "rectangle", "default": ((0.1, 0.1), (0.2, 0.2)) },
-            { "name": _("Destination"), "property": "position", "type": "point", "default": (0.5, 0.5)}
+    def __init__(self, api):
+        self.__api = api
+        self.operation_id = "stamp-example-operation"
+        self.operation_name = _("Stamp (Example)")
+        self.operation_prefix = _("Stamped ")
+        default_source_rectangle = (0.1, 0.3), (0.2, 0.3)  # must be plain tuple; origin (y, x), size (height, width)
+        default_position = 0.5, 0.6  # must be plain tuple: y, x
+        self.operation_description = [
+            {"name": _("Source Rectangle"), "property": "bounds", "type": "rectangle", "default": default_source_rectangle},
+            {"name": _("Destination Position"), "property": "position", "type": "point", "default": default_position}
         ]
-        super(Stamp2dOperation, self).__init__(_("Stamp"), "stamp-example-operation", description)
-        self.region_types = { "source-region": "rectangle-region", "destination": "point-region" }
-        self.region_bindings = {
-            "source-region": [Operation.RegionBinding("bounds", "bounds")],
-            "destination": [Operation.RegionBinding("position", "position")]
+        self.operation_region_bindings = {
+            "source-region": {"type": "rectangle-region", "bindings": [{"bounds": "bounds"}]},
+            "destination": {"type": "point-region", "bindings": [{"position": "position"}]}
         }
 
-    def get_processed_data(self, data_sources, values):
-        # doesn't do any bounds checking
-        data = data_sources[0].data
-        shape = data_sources[0].data_shape
-        if data is None or shape is None:
-            return None
+    def close(self):
+        # close will be called if the extension is unloaded.
+        pass
+
+    def can_apply_to_data(self, data_and_metadata):
+        return data_and_metadata.is_data_2d
+
+    def get_processed_data_and_metadata(self, data_and_metadata, parameters):
+        api = self.__api
+        data = data_and_metadata.data
+        shape = data_and_metadata.data_shape
         data_copy = data.copy()
-        bounds = Geometry.FloatRect.make(values.get("bounds"))  # get bounds tuple and convert to FloatRect
-        position = Geometry.FloatPoint.make(values.get("position"))  # get position tuple and convert to FloatPoint
-        source_origin = Geometry.IntPoint(y=bounds.top * shape[0], x=bounds.left * shape[1])  # convert to IntPoint
-        source_size = Geometry.IntSize(height=bounds.height * shape[0], width=bounds.width * shape[1])  # convert to IntSize
-        source_bounds = Geometry.IntRect(source_origin, source_size)
-        destination_center = Geometry.IntPoint(y=position.y * shape[0], x=position.x * shape[1])  # convert to IntPoint
-        destination_bounds = Geometry.IntRect.from_center_and_size(destination_center, source_size)
-        source_slice = data[source_bounds.top:source_bounds.bottom, source_bounds.left:source_bounds.right]
-        destination_slice = data_copy[destination_bounds.top:destination_bounds.bottom, destination_bounds.left:destination_bounds.right]
+        bounds_origin, bounds_size = parameters.get("bounds")  # origin, size
+        bounds_origin_y, bounds_origin_x = bounds_origin  # y, x
+        bounds_size_height, bounds_size_width = bounds_size  # height, width
+        bounds_top = bounds_origin_y
+        bounds_height = bounds_size_height
+        bounds_left = bounds_origin_x
+        bounds_width = bounds_size_width
+        position_y, position_x = parameters.get("position")  # y, x
+        source_origin_y = int(bounds_top * shape[0])
+        source_origin_x = int(bounds_left * shape[1])
+        source_size_height = int(bounds_height * shape[0])
+        source_size_width = int(bounds_width * shape[1])
+        source_bounds_top = source_origin_y
+        source_bounds_left = source_origin_x
+        source_bounds_bottom = source_origin_y + source_size_height
+        source_bounds_right = source_origin_x + source_size_width
+        destination_center_y = int(position_y * shape[0])
+        destination_center_x = int(position_x * shape[1])
+        destination_bounds_top = int(destination_center_y - source_size_height * 0.5)
+        destination_bounds_bottom = destination_bounds_top + source_size_height
+        destination_bounds_left = int(destination_center_x - source_size_width * 0.5)
+        destination_bounds_right = destination_bounds_left + source_size_width
+        source_slice = data[source_bounds_top:source_bounds_bottom, source_bounds_left:source_bounds_right]
+        destination_slice = data_copy[destination_bounds_top:destination_bounds_bottom, destination_bounds_left:destination_bounds_right]
         destination_slice[:] = source_slice[:]
-        return data_copy
+        intensity_calibration = data_and_metadata.intensity_calibration
+        dimensional_calibrations = data_and_metadata.dimensional_calibrations
+        metadata = data_and_metadata.metadata
+        return api.create_data_and_metadata_from_data(data_copy, intensity_calibration, dimensional_calibrations, metadata)
 
 
-Operation.OperationManager().register_operation("stamp-example-operation", lambda: Stamp2dOperation())
+class OperationExampleExtension(object):
 
-def processing_stamp(document_controller):
-    display_specifier = document_controller.selected_display_specifier
-    buffered_data_source = display_specifier.buffered_data_source if display_specifier else None
-    if buffered_data_source and len(buffered_data_source.dimensional_shape) == 2:
-        operation = Operation.OperationItem("stamp-example-operation")
-        operation.establish_associated_region("source-region", buffered_data_source)
-        operation.establish_associated_region("destination", buffered_data_source)
-        return document_controller.add_processing_operation(display_specifier.buffered_data_source_specifier, operation, prefix=_("Stamped "))
-    return DataItem.DisplaySpecifier()
+    # required for Swift to recognize this as an extension class.
+    extension_id = "nion.swift.examples.operation_example"
 
-def build_menus(document_controller):
-    """ Make menu item for this operation. """
-    document_controller.processing_menu.add_menu_item(_("Stamp (Example)"), lambda: processing_stamp(document_controller))
+    def __init__(self, api_broker):
+        # grab the api object.
+        api = api_broker.get_api(version="1", ui_version="1")
+        # be sure to keep a reference or it will be closed immediately.
+        self.__operation_ref = api.create_unary_operation(Stamp2dOperationDelegate(api))
 
-Application.app.register_menu_handler(build_menus) # called on import to make the menu entry for this plugin
+    def close(self):
+        # close will be called when the extension is unloaded. in turn, close any references so they get closed. this
+        # is not strictly necessary since the references will be deleted naturally when this object is deleted.
+        self.__operation_ref.close()
+        self.__operation_ref = None

@@ -6,24 +6,22 @@ import logging
 # None
 
 # local libraries
-from nion.swift import Panel
-from nion.swift import Workspace
-from nion.swift.model import DataItem
-from nion.ui import Binding
-from nion.ui import CanvasItem
+# None
 
 _ = gettext.gettext
 
 
-class ExampleCanvasItem(CanvasItem.AbstractCanvasItem):
+class CanvasWidgetDelegate(object):
 
     """ Draws our example canvas; roughly based no HTML5 canvas API. """
 
-    def _repaint(self, drawing_context):
+    def __init__(self):
+        pass
 
+    def _repaint(self, drawing_context, canvas_size):
         # canvas size
-        canvas_width = self.canvas_size[1]
-        canvas_height = self.canvas_size[0]
+        canvas_width = canvas_size.width
+        canvas_height = canvas_size.height
 
         drawing_context.save()
         drawing_context.begin_path()
@@ -49,29 +47,40 @@ class ExampleCanvasItem(CanvasItem.AbstractCanvasItem):
 
 
 
-class CanvasPanelExample(Panel.Panel):
+class CanvasPanelDelegate(object):
+    """ Example panel with a canvas item embedded. """
 
-    """ Make a panel to hold the canvas """
-
-    def __init__(self, document_controller, panel_id, properties):
-        super(CanvasPanelExample, self).__init__(document_controller, panel_id, "Canvas Example")
-
-        ui = document_controller.ui
-
-        # user interface
-
-        self.root_canvas_item = CanvasItem.RootCanvasItem(document_controller.ui, properties={"min-height": 40, "max-height": 40})
-        self.root_canvas_item.add_canvas_item(ExampleCanvasItem())
-
-        column = self.ui.create_column_widget()
-        column.add(self.root_canvas_item.canvas_widget)
-
-        self.widget = column
+    def __init__(self):
+        self.panel_id = "canvas-example-panel"
+        self.panel_name = _("Canvas Example")
+        self.panel_positions = ["left", "right"]
+        self.panel_position = "right"
+        self.panel_properties = {"width": 320, "height": 40}
 
     def close(self):
-        self.root_canvas_item.close()
-        self.root_canvas_item = None
+        # close will be called if the extension is unloaded.
+        pass
+
+    def create_panel_widget(self, ui, document_controller):
+        canvas_widget_delegate = CanvasWidgetDelegate()
+        canvas_widget = ui.create_canvas_widget(height=40)
+        canvas_widget.on_repaint = canvas_widget_delegate._repaint
+        return canvas_widget
 
 
-workspace_manager = Workspace.WorkspaceManager()
-workspace_manager.register_panel(CanvasPanelExample, "canvas-example-panel", _("Canvas Example"), ["left", "right"], "right", {"width": 320, "height": 40})
+class CanvasPanelExampleExtension(object):
+
+    # required for Swift to recognize this as an extension class.
+    extension_id = "nion.swift.examples.canvas_panel_example"
+
+    def __init__(self, api_broker):
+        # grab the api object.
+        api = api_broker.get_api(version="1", ui_version="1")
+        # be sure to keep a reference or it will be closed immediately.
+        self.__panel_ref = api.create_panel(CanvasPanelDelegate())
+
+    def close(self):
+        # close will be called when the extension is unloaded. in turn, close any references so they get closed. this
+        # is not strictly necessary since the references will be deleted naturally when this object is deleted.
+        self.__panel_ref.close()
+        self.__panel_ref = None

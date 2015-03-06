@@ -2,49 +2,45 @@
 import gettext
 import logging
 
-# local imports
-from nion.swift import Application
+# third part imports
+import numpy
+
+# local libraries
+# None
 
 _ = gettext.gettext
 
 
-# represents a global function, not associated with a document controller
-def global_function():
-    logging.info("global_function has been called.")
+class MenuItemDelegate(object):
+
+    def __init__(self):
+        self.menu_id = "example_menu"  # required, specify menu_id where this item will go
+        self.menu_name = _("Examples")  # optional, specify default name if not a standard menu
+        self.menu_before_id = "window_menu"  # optional, specify before menu_id if not a standard menu
+        self.menu_item_name = _("Example Menu Item")  # menu item name
+
+    def close(self):
+        # close will be called if the extension is unloaded.
+        pass
+
+    def menu_item_execute(self, document_controller):
+        document_controller.add_data(numpy.random.randn(64, 64), _("Random 64"))
+        logging.info("MenuItemDelegate menu_item_execute has been called.")
 
 
-# represents a function, associated with a document controller
-def document_controller_command(document_controller):
-    document_model = document_controller.document_model
-    logging.info("document_controller_command has been called.")
-    logging.info("document model contains %s data items", len(document_model.data_items))
+class MenuExampleExtension(object):
 
+    # required for Swift to recognize this as an extension class.
+    extension_id = "nion.swift.examples.menu_example"
 
-def pane_command(document_controller):
-    buffered_data_source = document_controller.selected_display_specifier.buffered_data_source
-    logging.info("pane_command has been called.")
-    if buffered_data_source is not None:
-        logging.info("selected data item shape is %s", buffered_data_source.dimensional_shape)
-    else:
-        logging.info("no data item is selected")
+    def __init__(self, api_broker):
+        # grab the api object.
+        api = api_broker.get_api(version="1", ui_version="1")
+        # be sure to keep a reference or it will be closed immediately.
+        self.__menu_item_ref = api.create_menu_item(MenuItemDelegate())
 
-
-# the build_menus function will be called whenever a new document window is created.
-# it will be passed the document_controller.
-def build_menus(document_controller):
-    # check to see if the document controller already has an example menu member.
-    example_menu = document_controller.get_or_create_menu("example_menu", _("Examples"), "window_menu")
-
-    # the lambda function will be called when the user chooses this menu item.
-    example_menu.add_menu_item(_("Call Global Function..."), lambda: global_function())
-
-    # the lambda function passes document controller from this scope.
-    example_menu.add_menu_item(_("Call Document Controller Command..."),
-                               lambda: document_controller_command(document_controller))
-
-    # the lambda function passes document controller from this scope.
-    example_menu.add_menu_item(_("Call Data Pane Command..."), lambda: pane_command(document_controller))
-
-
-# register the menu handler with the application.
-Application.app.register_menu_handler(build_menus)
+    def close(self):
+        # close will be called when the extension is unloaded. in turn, close any references so they get closed. this
+        # is not strictly necessary since the references will be deleted naturally when this object is deleted.
+        self.__menu_item_ref.close()
+        self.__menu_item_ref = None
