@@ -19,7 +19,7 @@ class CreateSomeRegionsMenuItemDelegate(object):
     def menu_item_execute(self, document_controller):
         data_item = document_controller.target_data_item
         if data_item:
-            data_item.add_rectangle_region(0.2, 0.1, 0.3, 0.4)
+            data_item.add_rectangle_region(0.3, 0.3, 0.3, 0.4)
             data_item.add_point_region(0.8, 0.7)
 
 
