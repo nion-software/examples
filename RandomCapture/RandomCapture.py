@@ -36,9 +36,6 @@ class RandomCaptureHardwareSourceDelegate(object):
         self.y_phase += 0.05
         return api.create_data_and_metadata_from_data(data)
 
-    def stop_acquisition(self):
-        pass
-
 
 class RandomCaptureExampleExtension(object):
 
