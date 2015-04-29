@@ -26,6 +26,9 @@ class RandomCaptureHardwareSourceDelegate(object):
         self.x_frequency = 3.0
         self.y_frequency = 1.2
 
+    def stop_acquisition(self):
+        pass
+
     def acquire_data_and_metadata(self):
         api = self.__api
         time.sleep(0.1)
