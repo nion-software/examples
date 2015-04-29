@@ -76,7 +76,9 @@ class MenuItem3Delegate(object):
             channels_enabled = [True, True, False, False]
             with contextlib.closing(scan.create_record_task(frame_parameters=frame_parameters, channels_enabled=channels_enabled)) as record_task:
                 logging.debug("start %s", time.time())
-                with contextlib.closing(camera.create_view_task()) as camera_view:
+                camera_parameters = camera.get_default_frame_parameters()
+                camera_parameters.exposure_ms = 10
+                with contextlib.closing(camera.create_view_task(frame_parameters=camera_parameters)) as camera_view:
                     while not record_task.is_finished:
                         logging.debug("%s: %s", time.time(), camera_view.grab_next_to_finish()[0].dimensional_shape)
                 logging.debug(record_task.grab()[0].dimensional_shape)
