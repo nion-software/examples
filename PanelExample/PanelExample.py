@@ -36,7 +36,7 @@ class PanelExampleDelegate(object):
         button_row = ui.create_row_widget()
         button_widget = ui.create_push_button_widget(_("Push Me"))
         def button_clicked():
-            edit_line_edit.text = unicode()
+            edit_line_edit.text = str()
         button_widget.on_clicked = button_clicked
         button_row.add(button_widget)
         button_row.add_stretch()
