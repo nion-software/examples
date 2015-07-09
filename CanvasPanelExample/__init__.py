@@ -1,1 +1,1 @@
-import CanvasPanelExample
+from . import CanvasPanelExample

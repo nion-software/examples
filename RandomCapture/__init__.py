@@ -1,1 +1,1 @@
-import RandomCapture
+from . import RandomCapture

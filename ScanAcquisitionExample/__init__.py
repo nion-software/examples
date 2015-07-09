@@ -1,1 +1,1 @@
-import ScanAcquisitionExample
+from . import ScanAcquisitionExample
