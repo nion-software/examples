@@ -1,1 +1,1 @@
-import PanelExample
+from . import PanelExample

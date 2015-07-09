@@ -1,1 +1,1 @@
-import MenuExample
+from . import MenuExample
