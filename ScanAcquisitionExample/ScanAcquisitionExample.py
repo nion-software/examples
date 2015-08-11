@@ -27,7 +27,7 @@ class MenuItem1Delegate(object):
         # record style 1 is a synchronous call to record and grab the frames.
         def do_record():
             frame_parameters = scan.get_default_frame_parameters()
-            frame_parameters.size = 600, 600  # y, x
+            frame_parameters["size"] = 600, 600  # y, x
             logging.debug(scan.record()[0].dimensional_shape)
 
         # record should be done in a thread so it doesn't lock the UI
@@ -48,7 +48,7 @@ class MenuItem2Delegate(object):
         # frames at the end.
         def do_record():
             frame_parameters = scan.get_default_frame_parameters()
-            frame_parameters.size = 500, 500  # y, x
+            frame_parameters["size"] = 500, 500  # y, x
             channels_enabled = [True, True, False, False]
             with contextlib.closing(scan.create_record_task(frame_parameters=frame_parameters, channels_enabled=channels_enabled)) as record_task:
                 logging.debug(record_task.grab()[0].dimensional_shape)
@@ -72,12 +72,12 @@ class MenuItem3Delegate(object):
         # frames at the end.
         def do_record():
             frame_parameters = scan.get_default_frame_parameters()
-            frame_parameters.size = 500, 500  # y, x
+            frame_parameters["size"] = 500, 500  # y, x
             channels_enabled = [True, True, False, False]
             with contextlib.closing(scan.create_record_task(frame_parameters=frame_parameters, channels_enabled=channels_enabled)) as record_task:
                 logging.debug("start %s", time.time())
                 camera_parameters = camera.get_default_frame_parameters()
-                camera_parameters.exposure_ms = 10
+                camera_parameters["exposure_ms"] = 10
                 with contextlib.closing(camera.create_view_task(frame_parameters=camera_parameters)) as camera_view:
                     while not record_task.is_finished:
                         logging.debug("%s: %s", time.time(), camera_view.grab_next_to_finish()[0].dimensional_shape)
