@@ -55,7 +55,7 @@ class CanvasPanelDelegate(object):
         self.panel_name = _("Canvas Example")
         self.panel_positions = ["left", "right"]
         self.panel_position = "right"
-        self.panel_properties = {"width": 320, "height": 40}
+        self.panel_properties = {"min-width": 320, "min-height": 40, "max-height": 40}
 
     def close(self):
         # close will be called if the extension is unloaded.
