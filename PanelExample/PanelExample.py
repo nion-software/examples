@@ -28,7 +28,7 @@ class PanelExampleDelegate(object):
         edit_line_edit = ui.create_line_edit_widget()
         def editing_finished(text):
             logging.debug(text)
-            edit_line_edit.select_all()
+            edit_line_edit.request_refocus()
         edit_line_edit.on_editing_finished = editing_finished
         edit_row.add(edit_line_edit)
         edit_row.add_stretch()
