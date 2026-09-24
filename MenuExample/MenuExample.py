@@ -1,7 +1,7 @@
 # system imports
-import typing
 import gettext
 import logging
+import typing
 
 # third part imports
 import numpy
