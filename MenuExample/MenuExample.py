@@ -13,29 +13,29 @@ _ = gettext.gettext
 
 
 class MenuItemDelegate(object):
-
     def __init__(self) -> None:
-        self.menu_id = "example_menu"  # required, specify menu_id where this item will go
-        self.menu_name = _("Examples")  # optional, specify default name if not a standard menu
-        self.menu_before_id = "window_menu"  # optional, specify before menu_id if not a standard menu
-        self.menu_item_name = _("Example Menu Item")  # menu item name
+        self.menu_id = "example_menu"
+        self.menu_name = _("Examples")
+        self.menu_before_id = "window_menu"
+        self._menu_item_name = _("Example Menu Item")
+
+    @property
+    def menu_item_name(self) -> str:
+        return self._menu_item_name
+
+    def menu_item_execute(self, document_window: Facade.DocumentWindow) -> None:
+        document_window.add_data(numpy.random.randn(64, 64), _("Random 64"))
+        logging.info("MenuItemDelegate menu_item_execute has been called.")
 
     def close(self) -> None:
-        # close will be called if the extension is unloaded.
         pass
-
-    class MenuItemDelegate(object):
-        def menu_item_execute(self, document_window: Facade.DocumentWindow) -> None:
-            document_window.add_data(numpy.random.randn(64, 64), _("Random 64"))
-            logging.info("MenuItemDelegate menu_item_execute has been called.")
-
 
 class MenuExampleExtension(object):
 
     # required for Swift to recognize this as an extension class.
     extension_id = "nion.swift.examples.menu_example"
 
-    def __init__(self, api_broker) -> None:
+    def __init__(self, api_broker: Facade.APIBroker) -> None:
         # grab the api object.
         api = api_broker.get_api(version="1", ui_version="1")
         # be sure to keep a reference or it will be closed immediately.
