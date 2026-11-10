@@ -14,10 +14,10 @@ _ = gettext.gettext
 
 class MenuItemDelegate(object):
     def __init__(self) -> None:
-        self.menu_id = "example_menu"
-        self.menu_name = _("Examples")
-        self.menu_before_id = "window_menu"
-        self._menu_item_name = _("Example Menu Item")
+        self.menu_id = "example_menu"  # required, specify menu_id where this item will go
+        self.menu_name = _("Examples")   # optional, specify default name if not a standard menu
+        self.menu_before_id = "window_menu"  # optional, specify before menu_id if not a standard menu
+        self._menu_item_name = _("Example Menu Item")  # menu item name
 
     @property
     def menu_item_name(self) -> str:
